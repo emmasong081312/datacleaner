@@ -19,11 +19,11 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        .block-container {
-            max-width: 1400px;
-            padding-top: 2rem;
-            padding-bottom: 3rem;
-        }
+    .block-container {
+        max-width: 1400px;
+        padding-top: 1rem;
+        padding-bottom: 3rem;
+    }
 
         h1 {
             letter-spacing: -1px;
@@ -258,9 +258,23 @@ def exportar_excel(df):
 # =========================================================
 # ENCABEZADO
 # =========================================================
+st.markdown(
+    '<div class="dc-eyebrow">'
+    'PROYECTO ACADÉMICO · CIENCIA DE DATOS'
+    '</div>',
+    unsafe_allow_html=True
+)
 
 st.markdown(
-    '<div class="dc-eyebrow">DATA TOOLS · LIMPIEZA DE DATOS</div>',
+    '<div style="color: #77817c; font-size: 0.9rem; '
+    'margin-bottom: 8px;">'
+    'Desarrollado por Emmanuel Sotelo · 2026'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="dc-eyebrow">WEB APP PARA LA LIMPIEZA DE DATOS</div>',
     unsafe_allow_html=True
 )
 
