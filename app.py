@@ -518,11 +518,15 @@ with st.expander("🔤  Limpieza de textos", expanded=False):
         "mayúsculas y minúsculas."
     )
 
+    
+    
+
     limpiar_espacios = st.checkbox(
         "Eliminar espacios al principio y al final",
         help="No elimina los espacios que separan palabras.",
         key="limpiar_espacios"
     )
+
 
     normalizar_texto = st.selectbox(
         "Formato de texto",
@@ -550,8 +554,9 @@ with st.expander("🔤  Limpieza de textos", expanded=False):
 
         st.caption(
             "Solo se modificarán las columnas seleccionadas. "
-            "Por ejemplo, podés normalizar nombres sin alterar correos."
+            "Podés limpiar nombres sin alterar correos u otros datos."
         )
+
 
 
 # ---------------------------------------------------------
@@ -769,6 +774,7 @@ duplicados_eliminados = 0
 conversiones_fallidas = 0
 valores_reemplazados = 0
 
+
 # ---------------------------------------------------------
 # Limpiar espacios
 # ---------------------------------------------------------
@@ -791,8 +797,6 @@ if limpiar_espacios:
             )
 
             dataframe_limpio[columna] = limpios
-
-
 # ---------------------------------------------------------
 # Normalizar textos
 # ---------------------------------------------------------
