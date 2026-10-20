@@ -670,6 +670,78 @@ with st.expander("🧬  Filas duplicadas", expanded=False):
                 "en las columnas elegidas."
             )
 
+# ---------------------------------------------------------
+# 3.6 REEMPLAZOS
+# ---------------------------------------------------------
+
+with st.expander("🔁 Reemplazar valores", expanded=False):
+
+    st.caption(
+        "Reemplazá varios valores de una columna mediante reglas "
+        "que podés agregar o quitar."
+    )
+
+    columna_reemplazo = st.selectbox(
+        "Columna donde reemplazar",
+        options=columnas_trabajo,
+        key="columna_reemplazo"
+    )
+
+    ignorar_mayusculas = st.checkbox(
+        "Ignorar mayúsculas y minúsculas",
+        value=True,
+        key="ignorar_mayusculas"
+    )
+
+    if "reglas_reemplazo" not in st.session_state:
+        st.session_state.reglas_reemplazo = [
+            {"id": 0, "original": "", "nuevo": ""}
+        ]
+
+    if "siguiente_id_reemplazo" not in st.session_state:
+        st.session_state.siguiente_id_reemplazo = 1
+
+    for regla in st.session_state.reglas_reemplazo:
+        regla_id = regla["id"]
+
+        col_original, col_nuevo, col_eliminar = st.columns(
+            [2, 2, 0.5]
+        )
+
+        with col_original:
+            st.text_input(
+                "Valor original",
+                key=f"reemplazo_original_{regla_id}"
+            )
+
+        with col_nuevo:
+            st.text_input(
+                "Reemplazar por",
+                key=f"reemplazo_nuevo_{regla_id}"
+            )
+
+        with col_eliminar:
+            st.write("")
+            st.write("")
+            if st.button("✕", key=f"eliminar_regla_{regla_id}"):
+                st.session_state.reglas_reemplazo = [
+                    r for r in st.session_state.reglas_reemplazo
+                    if r["id"] != regla_id
+                ]
+                st.rerun()
+
+    if st.button("➕ Agregar regla", key="agregar_regla"):
+        nuevo_id = st.session_state.siguiente_id_reemplazo
+
+        st.session_state.reglas_reemplazo.append({
+            "id": nuevo_id,
+            "original": "",
+            "nuevo": ""
+        })
+
+        st.session_state.siguiente_id_reemplazo += 1
+        st.rerun()
+
 
 st.divider()
 
@@ -695,7 +767,7 @@ valores_completados = 0
 filas_eliminadas_vacios = 0
 duplicados_eliminados = 0
 conversiones_fallidas = 0
-
+valores_reemplazados = 0
 
 # ---------------------------------------------------------
 # Limpiar espacios
@@ -770,6 +842,67 @@ if convertir_tipos:
         )
 
         dataframe_limpio[columna] = convertida
+
+
+# ---------------------------------------------------------
+# Reemplazar valores
+# ---------------------------------------------------------
+
+columna_objetivo = st.session_state.get("columna_reemplazo")
+
+if columna_objetivo in dataframe_limpio.columns:
+    ignorar_mayusculas_actual = st.session_state.get(
+        "ignorar_mayusculas",
+        True
+    )
+
+    for regla in st.session_state.get("reglas_reemplazo", []):
+        regla_id = regla["id"]
+
+        valor_original = st.session_state.get(
+            f"reemplazo_original_{regla_id}", ""
+        )
+
+        valor_nuevo = st.session_state.get(
+            f"reemplazo_nuevo_{regla_id}", ""
+        )
+
+        if not valor_original.strip():
+            continue
+
+        if not valor_nuevo.strip():
+            continue
+
+        serie = dataframe_limpio[columna_objetivo]
+
+        if ignorar_mayusculas_actual:
+            mascara = (
+                serie.astype("string")
+                .str.strip()
+                .str.casefold()
+                .eq(valor_original.strip().casefold())
+                .fillna(False)
+            )
+        else:
+            mascara = (
+                serie.astype("string")
+                .str.strip()
+                .eq(valor_original.strip())
+                .fillna(False)
+            )
+
+        valores_reemplazados += int(mascara.sum())
+
+        if not pd.api.types.is_object_dtype(
+            dataframe_limpio[columna_objetivo].dtype
+        ):
+            dataframe_limpio[columna_objetivo] = (
+                dataframe_limpio[columna_objetivo].astype("object")
+            )
+
+        dataframe_limpio.loc[
+            mascara, columna_objetivo
+        ] = valor_nuevo
 
 
 # ---------------------------------------------------------
@@ -856,6 +989,7 @@ with st.expander("Ver resumen de las operaciones", expanded=False):
     with col1:
         st.write("**Correcciones realizadas**")
         st.write(f"Espacios corregidos: {cambios_espacios}")
+        st.write(f"Valores reemplazados: {valores_reemplazados}")
         st.write(f"Valores vacíos completados: {valores_completados}")
         st.write(f"Duplicados eliminados: {duplicados_eliminados}")
 
